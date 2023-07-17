@@ -53,40 +53,73 @@ library(multiplex)
 
 # read .edges Graph from networkrepository.com
 # NOTE graphNEL are typically used for directed graphs
-listOfEdgesFiles <- list("bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast", "bio-yeast-protein-inter")
+#  "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
+listOfEdgesFiles <- list("bio-CE-GT")
 
-# read graph
-dd <- read.table("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/bio-CE-GT/bio-CE-GT.edges", header=FALSE)
-graph_obj <- graphNEL()
+# df to fill with all the WienerIndex results 
+wienerIndices <- list()
 
-# where all edges are stored for is_edge_added function
-added_edges <- list()
-
-dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 1), ncol=3, byrow=TRUE)
-print(dd)
-
-# Loop through the edges data and add the nodes and edges to the graphNEL object
-for (i in 1:nrow(dd)) {
-  node1 <- as.character(dd[i, 1])
-  node2 <- as.character(dd[i, 2])
-  weight <- as.numeric(dd[i, 3])
+###
+# start loop for wienerIndex with multiple graphs
+for (edgeFile in listOfEdgesFiles) {
   
-  if (!(node1 %in% nodes(graph_obj))) {
-    graph_obj <- addNode(node1, graph_obj)
-  }
-  if (!(node2 %in% nodes(graph_obj))) {
-    graph_obj <- addNode(node2, graph_obj)
+  pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/", edgeFile, "/", edgeFile, ".edges", sep="")
+  print(pathVar)
+  # read graph
+  #dd <- read.table(pathVar, header=FALSE)
+  
+  # example graph for testing
+  dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 1), ncol=3, byrow=TRUE)
+
+  # reset every time for new graph measure or graph
+  graph_obj <- graphNEL()
+  
+  # where all edges are stored for is_edge_added function - also reset everytime
+  added_edges <- list()
+  
+  
+  # Loop through the edges data and add the nodes and edges to the graphNEL object
+  for (i in 1:nrow(dd)) {
+    node1 <- as.character(dd[i, 1])
+    node2 <- as.character(dd[i, 2])
+    if (dd[i,3]) {
+      weight <- as.numeric(dd[i, 3])
+    }
+    
+    
+    if (!(node1 %in% nodes(graph_obj))) {
+      graph_obj <- addNode(node1, graph_obj)
+    }
+    if (!(node2 %in% nodes(graph_obj))) {
+      graph_obj <- addNode(node2, graph_obj)
+    }
+    
+    # Add the edge to the graph
+    if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
+      graph_obj <- addEdge(graph_obj, from = node1, to = node2)
+      graph_obj <- addEdge(graph_obj, from = node2, to = node1)
+      added_edges <- c(added_edges, list(edge(node1, node2)))
+    }
+    
+    # Set the weight attribute of the edge
+    edge_obj <- edge(graph_obj, from = node1, to = node2)
+    #edgeDataDefaults(graph_obj, attr = "weight")
+    #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
   }
   
-  # Add the edge to the graph
-  if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
-    graph_obj <- addEdge(graph_obj, from = node1, to = node2)
-    graph_obj <- addEdge(graph_obj, from = node2, to = node1)
-    added_edges <- c(added_edges, list(edge(node1, node2)))
-  }
+  # not all graphs are connected
+  #if(!isFullyConnected(graph_obj)) {
+  #  graph_obj <- getLargestSubgraph(graph_obj)
+  #}
+  
+  wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
+  print(wiener(graph_obj))
+  
 }
 
-graph_obj <- getLargestSubgraph(graph_obj)
+
+print(edgeL(graph_obj))
+
 isFullyConnected(graph_obj)
 
 # is fully Connected graphNEL??
@@ -104,7 +137,6 @@ for (edge in edges) {
 
 print(graph_obj)
 plot(graph_obj)
-wiener(graph_obj)
 ###
 
 wikiGraph <- simplify(wikiGraph, remove.multiple = TRUE, remove.loops = TRUE)
@@ -150,12 +182,20 @@ dfs <- function(graph, start) {
 }
 
 # Test if graph is fully connected
-isFullyConnected <- function(graph) {
-  nodes <- nodes(graph)
-  if (length(nodes) <= 1) {
+isFullyConnected <- function(graph_obj) {
+    num_nodes <- vcount(graph_obj)
+    
+    if (num_nodes <= 1) {
+      return(TRUE)
+    }
+    
+    for (i in 1:num_nodes) {
+      for (j in (i + 1):num_nodes) {
+        if (!is.connected(graph_obj, nodes = c(i, j))) {
+          return(FALSE)
+        }
+      }
+    }
+    
     return(TRUE)
   }
-  start_node <- nodes[1]
-  dfs_result <- dfs(graph, root=start_node)
-  all(nodes %in% dfs_result)
-}
