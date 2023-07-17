@@ -24,6 +24,7 @@ install.packages('https://cran.r-project.org/src/contrib/combinat_0.0-8.tar.gz',
 install.packages('https://cran.r-project.org/src/contrib/gmp_0.7-1.tar.gz')
 #install.packages('https://cran.r-project.org/web/packages/multiplex/index.html#:~:text=multiplex_3.1.0.tar.gz')
 install.packages('multiplex')
+install.packages("gRbase")
 
 install.packages('Rgraphviz')
 library(Rgraphviz)
@@ -48,13 +49,14 @@ library(combinat)
 library(graph)
 library(igraph)
 library(QuACN)
+library(gRbase)
 # for edgeL
 library(multiplex)
 
 # read .edges Graph from networkrepository.com
 # NOTE graphNEL are typically used for directed graphs
-#  "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
-listOfEdgesFiles <- list("bio-CE-GT")
+listOfEdgesFiles <- list("bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter")
+listOfEdgesFiles <- list("eins")
 
 # df to fill with all the WienerIndex results 
 wienerIndices <- list()
@@ -69,14 +71,15 @@ for (edgeFile in listOfEdgesFiles) {
   #dd <- read.table(pathVar, header=FALSE)
   
   # example graph for testing
-  dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 1), ncol=3, byrow=TRUE)
+  dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 5), ncol=3, byrow=TRUE)
 
   # reset every time for new graph measure or graph
-  graph_obj <- graphNEL()
+  graph_obj <- graphNEL(edgeL=list(), edgemode = "undirected")
   
   # where all edges are stored for is_edge_added function - also reset everytime
   added_edges <- list()
   
+  edL2 <- vector("list", length=length(listOfEdgesFiles))
   
   # Loop through the edges data and add the nodes and edges to the graphNEL object
   for (i in 1:nrow(dd)) {
@@ -94,31 +97,42 @@ for (edgeFile in listOfEdgesFiles) {
       graph_obj <- addNode(node2, graph_obj)
     }
     
+    
     # Add the edge to the graph
     if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
       graph_obj <- addEdge(graph_obj, from = node1, to = node2)
       graph_obj <- addEdge(graph_obj, from = node2, to = node1)
+      print("weight added")
       added_edges <- c(added_edges, list(edge(node1, node2)))
     }
     
-    # Set the weight attribute of the edge
-    edge_obj <- edge(graph_obj, from = node1, to = node2)
-    #edgeDataDefaults(graph_obj, attr = "weight")
-    #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
+    # add edgeList to graphNEL object
+    edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
   }
   
+  graph_obj@edgeL <- edL2
+    # Set the weight attribute of the edge
+    #edge_obj <- edge(graph_obj, from = node1, to = node2)
+    #edgeDataDefaults(graph_obj, attr = "weight")
+    #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
+  
+  
+  #if (getLargestSubgraph(graph_obj)) {
+  #  graph_obj <- getLargestSubgraph(graph_obj)
+  #}
   # not all graphs are connected
   #if(!isFullyConnected(graph_obj)) {
   #  graph_obj <- getLargestSubgraph(graph_obj)
   #}
   
   wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
-  print(wiener(graph_obj))
+  print(paste("The WienerIndex of the current Graph", edgeFile, "is", wiener(graph_obj)))
   
+  plot(graph_obj)
+  print(edgeL(graph_obj))
 }
 
 
-print(edgeL(graph_obj))
 
 isFullyConnected(graph_obj)
 
