@@ -76,19 +76,22 @@ for (edgeFile in listOfEdgesFiles) {
   # reset every time for new graph measure or graph
   graph_obj <- graphNEL(edgeL=list(), edgemode = "undirected")
   
-  # where all edges are stored for is_edge_added function - also reset everytime
+  # where all edges are stored for is_edge_added function and check if edge already exists between vertices - also reset everytime
   added_edges <- list()
+  print(graph_obj@edgeL) # gives only "named list()"
   
-  edL2 <- vector("list", length=length(listOfEdgesFiles))
+  #print(paste("length of the edgeList", length(listOfEdgesFiles)))
+  #edL2 <- vector("list", length=length(listOfEdgesFiles))
+  #print(paste("this is the edgelist", edL2))
   
   # Loop through the edges data and add the nodes and edges to the graphNEL object
   for (i in 1:nrow(dd)) {
     node1 <- as.character(dd[i, 1])
     node2 <- as.character(dd[i, 2])
-    if (dd[i,3]) {
+    #print(dd[i, 3]) #prints the weight found in 3rd column @ position i
+    if (dd[i, 3] && !is.nan(dd[i, 3])) {
       weight <- as.numeric(dd[i, 3])
     }
-    
     
     if (!(node1 %in% nodes(graph_obj))) {
       graph_obj <- addNode(node1, graph_obj)
@@ -102,20 +105,32 @@ for (edgeFile in listOfEdgesFiles) {
     if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
       graph_obj <- addEdge(graph_obj, from = node1, to = node2)
       graph_obj <- addEdge(graph_obj, from = node2, to = node1)
-      print("weight added")
       added_edges <- c(added_edges, list(edge(node1, node2)))
+      print("edge added to list")
     }
     
     # add edgeList to graphNEL object
-    edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
+    #edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
+    #print(paste("length of edL2", length(edL2)))
+    #print(paste("the edL2 edgeList", edL2))
   }
+  #print(paste("all the added weights", edL2))
   
-  graph_obj@edgeL <- edL2
-    # Set the weight attribute of the edge
-    #edge_obj <- edge(graph_obj, from = node1, to = node2)
-    #edgeDataDefaults(graph_obj, attr = "weight")
-    #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
   
+  
+  
+  # Set the weight attribute of the edge
+  #edge_obj <- edge(graph_obj, from = node1, to = node2)
+  #edgeDataDefaults(graph_obj, attr = "weight")
+  #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
+  
+  #graph_obj@edgeL <- edL2
+  #print("graph_obj@edgeL edl2 added")
+  # Set the weight attribute of the edge
+  #edge_obj <- edge(graph_obj, from = node1, to = node2)
+  #edgeDataDefaults(graph_obj, attr = "weight")
+  #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
+
   
   #if (getLargestSubgraph(graph_obj)) {
   #  graph_obj <- getLargestSubgraph(graph_obj)
