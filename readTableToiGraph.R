@@ -44,28 +44,19 @@ install.packages("RBGL")
 install.packages("combinat")
 install.packages('QuACN')
 install.packages("graphNEL")
-install.packages("Seurat")
 library(RBGL)
 library(combinat)
 library(graph)
 library(igraph)
 library(QuACN)
 library(gRbase)
-library(Seurat)
-library(Matrix)
 # for edgeL
 library(multiplex)
 
-#tx  <- readLines("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/bio-grid-plant/bio-grid-plant.edges")
-#tx2  <- gsub(pattern = ",", replace = " ", x = tx)
-#writeLines(tx2, con="/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/bio-grid-plant/bio-grid-plant.edges")
-
-
 # read .edges Graph from networkrepository.com
 # NOTE graphNEL are typically used for directed graphs
-# "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT","bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
-listOfEdgesFiles <- list( "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT")
-listOfEdgesFiles <- list("bio-grid-mouse")
+listOfEdgesFiles <- list("soc-BlogCatalog", "soc-sign-Slashdot081106", "soc-sign-Slashdot090216", "soc-sign-Slashdot090221", "soc-slashdot", "soc-slashdot-trust-all", "soc-Slashdot0811", "soc-Slashdot0902", "soc-themaker")
+listOfEdgesFiles <- list("soc-BlogCatalog")
 
 # list to fill with all the graphs and their results from the applied graph measures 
 wienerIndices <- list()
@@ -76,105 +67,30 @@ print(df)
 ###
 # start loop for wienerIndex with multiple graphs
 for (edgeFile in listOfEdgesFiles) {
-  # set path
-  pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/", edgeFile, "/", edgeFile, ".edges", sep="")
+
+  pathVar = "/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/social/soc-BlogCatalog/soc-BlogCatalog.mtx"
+  pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/social/", edgeFile, "/", edgeFile, ".mtx", sep="")
   print(pathVar)
-  
-  # check graph for csv
-  #is_csv <- tryCatch({
-  #  read.ftable(grepl(",", pathVar))
-  #  print("table read as csv")
-  #  TRUE
-  #}, error = function(e) {
-  #  FALSE
-  #})
-  print(paste("the dataset is csv:", is_csv))
-  #read graph
-  dd <- read.table(pathVar, header = FALSE, sep = ",")
+  # read graph
+  dd <- as.matrix(read.table(pathVar, skip = 4))
   print(dd)
   
-  
-  # read graph
-  #if (!is_csv) {
-  #  dd <- read.table(pathVar, header=FALSE)
-  #  print("datatable non csv")
-  #} else {
-  #  dd <- read.table(pathVar, header=FALSE, sep = ",", row.names = NULL)
-  #  print("datatable csv")
-  #}
-  
   # example graph for testing
-  #dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 5), ncol=3, byrow=TRUE)
-
-  # reset every time for new graph measure or graph
-  graph_obj <- graphNEL(edgeL=list(), edgemode = "undirected")
-  
-  # where all edges are stored for is_edge_added function and check if edge already exists between vertices - also reset everytime
-  added_edges <- list()
-
-  #print(paste("length of the edgeList", length(listOfEdgesFiles)))
-  #edL2 <- vector("list", length=length(listOfEdgesFiles))
-  #print(paste("this is the edgelist", edL2))
-  
-  # Loop through the edges data and add the nodes and edges to the graphNEL object
-  for (i in 1:nrow(dd)) {
-    node1 <- as.character(dd[i, 1])
-    node2 <- as.character(dd[i, 2])
-    #print(dd[i, 3]) #prints the weight found in 3rd column @ position i
-    if (ncol(df) == 3 && is.null(dd[i, 3])) {
-      weight <- as.numeric(dd[i, 3])
-    }
-    
-    if (!(node1 %in% nodes(graph_obj))) {
-      graph_obj <- addNode(node1, graph_obj)
-    }
-    if (!(node2 %in% nodes(graph_obj))) {
-      graph_obj <- addNode(node2, graph_obj)
-    }
-    
-    
-    # Add the edge to the graph
-    if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
-      graph_obj <- addEdge(graph_obj, from = node1, to = node2)
-      graph_obj <- addEdge(graph_obj, from = node2, to = node1)
-      added_edges <- c(added_edges, list(edge(node1, node2)))
-      #print("edge added to list")
-      #edgeData(graph_obj, node1, node2)$weight <- weight
-      #print("weight added")
-      
-    }
-    
-    
-    # add edgeList to graphNEL object
-    #edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
-    #print(paste("length of edL2", length(edL2)))
-    #print(paste("the edL2 edgeList", edL2))
-  }
-  #print(paste("all the added weights", edL2))
-  
-  
-  
-  
-  # Set the weight attribute of the edge
-  #edge_obj <- edge(graph_obj, from = node1, to = node2)
-  #edgeDataDefaults(graph_obj, attr = "weight")
-  #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
-  
-  #graph_obj@edgeL <- edL2
-  #print("graph_obj@edgeL edl2 added")
-  # Set the weight attribute of the edge
-  #edge_obj <- edge(graph_obj, from = node1, to = node2)
-  #edgeDataDefaults(graph_obj, attr = "weight")
-  #setEdgeData(graph_obj, edge_obj, attr = "weight", value = weight)
+  dd <- matrix(c(1, 2, 1, 1, 3, 1, 1, 4, 5), ncol=3, byrow=TRUE)
+  print(dd)
 
   
-  #if (is.connected(graph_from_graphnel(graph_obj))) {
-    graph_obj <- getLargestSubgraph(graph_obj)
-  #}
-  # not all graphs are connected
-  #if(!isFullyConnected(graph_obj)) {
-  #  graph_obj <- getLargestSubgraph(graph_obj)
-  #}
+  # reset every time for new graph measure or graph to be filled
+  dd <- as.matrix(read.table(pathVar, skip = 4))
+  graph_obj <- graph_from_incidence_matrix(dd, directed = TRUE)
+  print(graph_obj)
+  graph_obj <- as_graphnel(graph_obj)
+  print(graph_obj)
+  graph_obj <- getLargestSubgraph(graph_obj)
+  print(wiener(graph_obj))
+  plot(graph_obj)
+  
+  graph_obj <- getLargestSubgraph(graph_obj)
   
   wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
   print(paste("The WienerIndex of the current Graph", edgeFile, "is", wiener(graph_obj)))
