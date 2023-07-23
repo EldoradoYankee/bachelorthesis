@@ -56,16 +56,12 @@ library(Matrix)
 # for edgeL
 library(multiplex)
 
-#tx  <- readLines("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/bio-grid-plant/bio-grid-plant.edges")
-#tx2  <- gsub(pattern = ",", replace = " ", x = tx)
-#writeLines(tx2, con="/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/bio-grid-plant/bio-grid-plant.edges")
-
-
 # read .edges Graph from networkrepository.com
 # NOTE graphNEL are typically used for directed graphs
 # "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT","bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
-listOfEdgesFiles <- list( "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT")
-listOfEdgesFiles <- list("bio-grid-mouse")
+# "fb-pages-company", "fb-pages-government", "fb-pages-politician", "fb-pages-sport", fb-pages-tvshows", "soc-advogato", "soc-anybeat", "soc-hamsterster"
+listOfEdgesFiles <- list( "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter")
+listOfEdgesFiles <- list("eins")
 
 # list to fill with all the graphs and their results from the applied graph measures 
 wienerIndices <- list()
@@ -80,6 +76,7 @@ for (edgeFile in listOfEdgesFiles) {
   pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/", edgeFile, "/", edgeFile, ".edges", sep="")
   print(pathVar)
   
+  
   # check graph for csv
   #is_csv <- tryCatch({
   #  read.ftable(grepl(",", pathVar))
@@ -88,10 +85,11 @@ for (edgeFile in listOfEdgesFiles) {
   #}, error = function(e) {
   #  FALSE
   #})
-  print(paste("the dataset is csv:", is_csv))
+  #print(paste("the dataset is csv:", is_csv))
   #read graph
-  dd <- read.table(pathVar, header = FALSE, sep = ",")
-  print(dd)
+  dd <- read.table(pathVar, header = FALSE)
+  #print(dd)
+  print("table read")
   
   
   # read graph
