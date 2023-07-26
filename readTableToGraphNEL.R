@@ -56,24 +56,41 @@ library(Matrix)
 # for edgeL
 library(multiplex)
 
+listOfEdgesFiles <- list("fb-pages-company", "fb-pages-government", "fb-pages-politician", "fb-pages-sport", "fb-pages-tvshow")
+for (edgeFile in listOfEdgesFiles) {
+  #pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/social/social/", edgeFile, "/", edgeFile, ".edges", sep="")
+  #dd <- read.table(pathVar, header = FALSE)
+  #print(dd)
+  #dd <- replace(dd, pattern = ",", " ")
+  #dd <- sapply(dd, gsub, pattern = ",", replacement= " ")
+  #dd <- sapply(dd, as.numeric)
+  #dd <- dd[complete.cases(dd), ]
+
+  #print(dd)
+  #save(dd, file = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/social/social/", edgeFile, "/", edgeFile, "1.edges", sep = ""))
+}
+
 # read .edges Graph from networkrepository.com
 # NOTE graphNEL are typically used for directed graphs
 # "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT","bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
-# "fb-pages-company", "fb-pages-government", "fb-pages-politician", "fb-pages-sport", fb-pages-tvshows", "soc-advogato", "soc-anybeat", "soc-hamsterster"
+# "fb-pages-company", "fb-pages-government", "fb-pages-politician", "fb-pages-sport", fb-pages-tvshows", "soc-advogato", "soc-anybeat", "soc-hamsterster", "soc-wiki-elec"
 listOfEdgesFiles <- list( "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter")
-listOfEdgesFiles <- list("eins")
+listOfEdgesFiles <- list("fb-pages-company")
 
 # list to fill with all the graphs and their results from the applied graph measures 
 wienerIndices <- list()
 df <- data.frame(matrix(ncol = length(listOfEdgesFiles), nrow = 0))
+print(listOfEdgesFiles)
 colnames(df) <- listOfEdgesFiles
 print(df)
+
+listOfGraphNEL <- list()
 
 ###
 # start loop for wienerIndex with multiple graphs
 for (edgeFile in listOfEdgesFiles) {
   # set path
-  pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/biological/", edgeFile, "/", edgeFile, ".edges", sep="")
+  pathVar = paste("/Users/eldoradoyankee/Library/CloudStorage/OneDrive-FFHS/Bachelorthesis/BT/Graphen/social/social/", edgeFile, "/", edgeFile, ".edges", sep="")
   print(pathVar)
   
   
@@ -87,7 +104,7 @@ for (edgeFile in listOfEdgesFiles) {
   #})
   #print(paste("the dataset is csv:", is_csv))
   #read graph
-  dd <- read.table(pathVar, header = FALSE)
+  dd <- read.table(pathVar, header = FALSE, sep = " ")
   #print(dd)
   print("table read")
   
@@ -106,6 +123,7 @@ for (edgeFile in listOfEdgesFiles) {
 
   # reset every time for new graph measure or graph
   graph_obj <- graphNEL(edgeL=list(), edgemode = "undirected")
+  print("graphNEL object constructed")
   
   # where all edges are stored for is_edge_added function and check if edge already exists between vertices - also reset everytime
   added_edges <- list()
@@ -130,6 +148,7 @@ for (edgeFile in listOfEdgesFiles) {
       graph_obj <- addNode(node2, graph_obj)
     }
     
+    print(paste("nodes added", i))
     
     # Add the edge to the graph
     if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
@@ -142,6 +161,9 @@ for (edgeFile in listOfEdgesFiles) {
       
     }
     
+    print(paste("edges added", i))
+    # add graphNEL object with all nodes and edges to a list to not calculate again
+    listOfGraphNEL[[length(listOfGraphNEL)+1]] <- graph_obj
     
     # add edgeList to graphNEL object
     #edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
@@ -149,7 +171,7 @@ for (edgeFile in listOfEdgesFiles) {
     #print(paste("the edL2 edgeList", edL2))
   }
   #print(paste("all the added weights", edL2))
-  
+  print("graphNEL constructed")
   
   
   
@@ -168,16 +190,19 @@ for (edgeFile in listOfEdgesFiles) {
   
   #if (is.connected(graph_from_graphnel(graph_obj))) {
     graph_obj <- getLargestSubgraph(graph_obj)
+    print("graph_obj got the largestSubgraph extracted")
+    listOfGraphNEL[[length(listOfGraphNEL)+1]] <- (graph_obj)
+    print("GraphNEL Object added to the listOfGraphNEL")
   #}
   # not all graphs are connected
   #if(!isFullyConnected(graph_obj)) {
   #  graph_obj <- getLargestSubgraph(graph_obj)
   #}
-  
+  print("calculating the wienerIndex")
   wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
-  print(paste("The WienerIndex of the current Graph", edgeFile, "is", wiener(graph_obj)))
+  print(paste("The wienerIndex of the current Graph", edgeFile, "is", wienerIndices[length(wienerIndices)]))
   
-  plot(graph_obj)
+  #plot(graph_obj)
   #print(edgeL(graph_obj))
 }
 df[nrow(df) + 1,] = c(wienerIndices)
