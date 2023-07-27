@@ -75,7 +75,7 @@ for (edgeFile in listOfEdgesFiles) {
 # "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT","bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter"
 # "fb-pages-company", "fb-pages-government", "fb-pages-politician", "fb-pages-sport", fb-pages-tvshows", "soc-advogato", "soc-anybeat", "soc-hamsterster", "soc-wiki-elec"
 listOfEdgesFiles <- list( "bio-CE-GT", "bio-CE-HT", "bio-CE-LC", "bio-DM-HT", "bio-grid-mouse", "bio-grid-plant", "bio-yeast-protein-inter")
-listOfEdgesFiles <- list("fb-pages-company")
+listOfEdgesFiles <- list("fb-pages-sport")
 
 # list to fill with all the graphs and their results from the applied graph measures 
 wienerIndices <- list()
@@ -85,6 +85,7 @@ colnames(df) <- listOfEdgesFiles
 print(df)
 
 listOfGraphNEL <- list()
+listOfGraph_obj <- list()
 
 ###
 # start loop for wienerIndex with multiple graphs
@@ -137,9 +138,9 @@ for (edgeFile in listOfEdgesFiles) {
     node1 <- as.character(dd[i, 1])
     node2 <- as.character(dd[i, 2])
     #print(dd[i, 3]) #prints the weight found in 3rd column @ position i
-    if (ncol(df) == 3 && is.null(dd[i, 3])) {
-      weight <- as.numeric(dd[i, 3])
-    }
+    #if (ncol(df) == 3 && is.null(dd[i, 3])) {
+    #  weight <- as.numeric(dd[i, 3])
+    #}
     
     if (!(node1 %in% nodes(graph_obj))) {
       graph_obj <- addNode(node1, graph_obj)
@@ -148,7 +149,7 @@ for (edgeFile in listOfEdgesFiles) {
       graph_obj <- addNode(node2, graph_obj)
     }
     
-    print(paste("nodes added", i))
+    
     
     # Add the edge to the graph
     if (!is_edge_added(node1, node2, added_edges) && !is_edge_added(node2, node1, added_edges)) {
@@ -160,10 +161,8 @@ for (edgeFile in listOfEdgesFiles) {
       #print("weight added")
       
     }
-    
-    print(paste("edges added", i))
+    print(paste("nodes and edges added", i))
     # add graphNEL object with all nodes and edges to a list to not calculate again
-    listOfGraphNEL[[length(listOfGraphNEL)+1]] <- graph_obj
     
     # add edgeList to graphNEL object
     #edL2[[i]] <- list(edges=c(node1, node2)[i], weights=weight)
@@ -193,20 +192,50 @@ for (edgeFile in listOfEdgesFiles) {
     print("graph_obj got the largestSubgraph extracted")
     listOfGraphNEL[[length(listOfGraphNEL)+1]] <- (graph_obj)
     print("GraphNEL Object added to the listOfGraphNEL")
+    
+    
+    
+    listOfMeasures <- list()
+    
+
+    #command <- paste(measure, "(", graph_obj, ")" , sep = "")
+    listOfMeasures[[length(listOfMeasures)+1]] <- wiener(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- harary(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- balabanJ(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- totalAdjacency(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- zagreb1(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- zagreb2(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- randic(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- complexityIndexB(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- atomBondConnectivity(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- narumiKatayama(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- topologicalInfoContent(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- bonchev1(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- radialCentric(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- vertexDegree(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- balabanlike1(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- balabanlike2(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- graphVertexComplexity(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- edgeEqualityMIC(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- efficiency(graph_obj)
+    listOfMeasures[[length(listOfMeasures)+1]] <- spanningTreeSensitivity(graph_obj)
+    
+    
   #}
   # not all graphs are connected
   #if(!isFullyConnected(graph_obj)) {
   #  graph_obj <- getLargestSubgraph(graph_obj)
   #}
-  print("calculating the wienerIndex")
-  wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
-  print(paste("The wienerIndex of the current Graph", edgeFile, "is", wienerIndices[length(wienerIndices)]))
+  #print("calculating the wienerIndex")
+  #wienerIndices[[length(wienerIndices)+1]] <- wiener(graph_obj)
+  #print(paste("The wienerIndex of the current Graph", edgeFile, "is", wienerIndices[length(wienerIndices)]))
   
   #plot(graph_obj)
   #print(edgeL(graph_obj))
 }
 df[nrow(df) + 1,] = c(wienerIndices)
 
+print(length(listOfGraphNEL))
 
 print(wienerIndices)
 print(df)
